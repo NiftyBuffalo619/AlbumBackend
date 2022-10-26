@@ -7,6 +7,7 @@ const path = require('path');
 const UAParser = require('ua-parser-js')
 const fs = require('fs')
 const { count } = require('console')
+const { send } = require('process')
 
 app.get('/', (req , res) => {
     res.sendFile(path.join(__dirname, './static', 'index.html'))
@@ -44,52 +45,21 @@ app.use((req , res , next) => {
     var i = 0;
     var countoffiles = 0;
     //Check if the client is a user using a browser or not 
-    var files = fs.readdir('./static' , (err , files) => {
-        
-            countoffiles = files.length;
             console.log(req.url)
             var requestedfile = req.url.split('/');
-            var result = files.filter(filename => filename == requestedfile[1])
+            var result = requestedfile[1]
             console.log(result);
-            fs.access('./static/' + result , fs.F_OK , (err) => {
-                if (err) {
-                     send404(); console.log(`Error file does not exist!`)
-                }
-                else {
-                    files.forEach(file => {
-                        if (file == result) {
-                        res.sendFile(path.join(__dirname, './static', file))
-                        //console.log(`Sending file ${file}`) //TODO fix when it sends double files 
-                        }
-                        i++;
-                    })
-                }
-
-            
-                /*if (fs.access('./static/' + result , fs.R_OK , (err) => {
-                    if (err === null) { send404(); console.log(`Error file does not exist!`)}
-                })) {
-                    send404()
-                }*/
-                /*else {
-                    console.log(`Checking for file...`)
-                    files.forEach(file => {
-                        if (file == result) {
-                        res.sendFile(path.join(__dirname, './static', file))
-                        //console.log(`Sending file ${file}`) //TODO fix when it sends double files 
-                        }
-                        i++;
-                    })
-                }*/
-            
-        }
-        )
-        /*if (i > countoffiles - 1) {
-            if (!res.headersSent) { send404(); console.log(`HEADERS SENT TRUE`)}
-            console.log(`TRUE`);
-        }*/
+            var file = fs.existsSync('./static/' + result);
+            if (!file) {
+                console.log(`404`)
+                send404()
+            }
+            else {
+                res.sendFile(__dirname + '/static/' + result)
+            }
+        
     })
-})
+
 
 app.use(express.static('static'));
 
